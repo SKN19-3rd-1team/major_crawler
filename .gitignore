@@ -1,0 +1,11 @@
+# vscode
+.vscode
+
+# AGENTS
+AGENTS.md
+
+# Web Driver
+chromedriver.exe
+
+# data
+data/
