@@ -1,3 +1,8 @@
+"""
+This code base is deprecated
+due to Hongik Univ.'s policy.
+"""
+
 import json
 import re
 from pathlib import Path

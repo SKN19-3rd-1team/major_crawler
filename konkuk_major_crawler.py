@@ -89,9 +89,15 @@ def extract_courses_from_table(page: Page) -> List[Dict]:
 
         if tds.count() < 5:
             continue
-
+        
+        # 학년-학기
+        grade_semester = tds.nth(0).inner_text().strip()
+        # 이수구분 (전선, 전필)
+        course_classification = tds.nth(1).inner_text().strip()
+        # 교과목명
         name_cell = tds.nth(3)
         name_kor = name_cell.inner_text().strip()
+        # 영문 교과목명
         name_eng = tds.nth(4).inner_text().strip()
 
         if not name_kor:
@@ -104,6 +110,8 @@ def extract_courses_from_table(page: Page) -> List[Dict]:
             description = parse_korean_desc_from_onclick(onclick_attr)
 
         course = {
+            "grade_semester": grade_semester,
+            "course_classification": course_classification,
             "name": name_kor,
             "name_en": name_eng,
             "description": description,
