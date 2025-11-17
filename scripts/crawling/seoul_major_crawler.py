@@ -100,7 +100,7 @@ def run():
                     except:
                         description = ""
 
-                    # JSON 구조에 맞게 저장
+                    # JSON 구조
                     if college not in data[university_name]:
                         data[university_name][college] = {}
                     if dept_name not in data[university_name][college]:

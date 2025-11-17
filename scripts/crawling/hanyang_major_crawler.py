@@ -7,36 +7,12 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import json
+# playwright
 
 url = "https://portal.hanyang.ac.kr/sugang/sulg.do"
 university_name = "한양대학교"
 semesters = [1, 2]
 colleges = ["공과대학", "자연과학대학"]
-
-
-def get_popup_text(driver, suup_no):
-    """과목코드(suupNo2)로 팝업 URL 열고 텍스트 추출"""
-    popup_url = (
-        "https://portal.hanyang.ac.kr/openPop.do?header=hidden"
-        f"&url=/haksa/SughAct/findSuupPlanDocHyIn.do&flag=DN&year=2025&term=10"
-        f"&suup={suup_no}&language=ko"
-    )
-
-    driver.execute_script(f"window.open('{popup_url}', '_blank');")
-    driver.switch_to.window(driver.window_handles[-1])
-    time.sleep(1)
-
-    text = ""
-    try:
-        body = driver.find_element(By.TAG_NAME, "body")
-        text = body.text.strip()
-    except:
-        text = ""
-
-    driver.close()
-    driver.switch_to.window(driver.window_handles[0])
-    return text
-
 
 def run():
     # 1. Chrome 실행
@@ -47,7 +23,7 @@ def run():
     wait = WebDriverWait(driver, 10)
 
     # 2. Syllabus 페이지 접속
-    syllabus_link = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//a[@title="수강편람"]')))
+    syllabus_link = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@title="수강편람"]')))
     driver.execute_script("arguments[0].click();", syllabus_link)
     time.sleep(1)
 
@@ -58,13 +34,13 @@ def run():
 
         for college in colleges:
             # 학기 선택
-            term_select_element = wait.until(EC.visibility_of_element_located((By.ID, "cbHakgi")))
+            term_select_element = wait.until(EC.visibility_of_element_located((By.ID, "cbTerm")))
             term_select = Select(term_select_element)
             term_select.select_by_visible_text(f"{semester}학기")
             time.sleep(1)
 
             # 학과과목(전공) 오디오버튼 선택
-            major_radio = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "rdoJongmok2")))
+            major_radio = wait.until(EC.element_to_be_clickable((By.ID, "hak")))
             major_radio.click()
             time.sleep(1)
 
@@ -78,38 +54,41 @@ def run():
 
             for hakgwa_option in hakgwa_select.options:
                 hakgwa_name = hakgwa_option.text.strip()
-                hakgwa_value = hakgwa_option.get_attribute("value")
-
-                data[university_name][college].setdefault(hakgwa_name, [])
-
-                hakgwa_select.select_by_value(hakgwa_value)
+                hakgwa_select.select_by_visible_text(hakgwa_name)
 
                 # 조회 버튼 클릭
                 btn_find = driver.find_element(By.ID, "btn_Find")
                 btn_find.click()
 
-                WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "table tbody tr")))
-
                 # 4. 과목명 및 과목 설명 크롤링
-                # 학수 번호 클릭
                 rows = driver.find_elements(By.CSS_SELECTOR, "table tbody tr")
-
                 for row in rows:
                     try:
-                        suup_no = row.find_element(By.ID, "suupNo2").text.strip()
-                        subject_name = row.find_element(By.ID, "gwamokNm").text.strip() # 과목명
+                        # 학수 번호 클릭 팝업 띄움
+                        subject_num = row.find_element(By.ID, "haksuNo")
+                        subject_num.click()
+                        time.sleep(1)
+
+                        # 팝업 내부 과목명 및 국문개요 크롤링
+                        wait.until(EC.visibility_of_element_located((By.ID, "gwamokNm")))
+
+                        subject_name = driver.find_element(By.ID, "gwamokNm").text.strip()
+                        description = driver.find_element(By.ID, "gwamokGaeyo").text.strip()
+                        print(description)                  
+                        
+                        # 팝업 닫기
+                        close_btn = driver.find_element(By.ID, "btn_Close")
+                        close_btn.click()
+                        time.sleep(1)
                     except:
-                        continue
+                        subject_name = ""
+                        description = ""
 
-                    # 과목 국문개요 
-                    description = get_popup_text(driver, suup_no)
-
-                    # JSON 구조에 맞게 저장
+                    # JSON 구조
                     if college not in data[university_name]:
                         data[university_name][college] = {}
                     if hakgwa_name not in data[university_name][college]:
                         data[university_name][college][hakgwa_name] = []
-
                     data[university_name][college][hakgwa_name].append({
                         "name": subject_name,
                         "description": description

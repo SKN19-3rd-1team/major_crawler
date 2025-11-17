@@ -31,7 +31,7 @@ def data_parse(file_path, college):
         description = str(row['교과목기술(국문)']).strip().replace('\n', ' ')
 
         if (dept_name not in "None" or course_name not in "None" or description not in "None"):
-            # JSON 형식
+            # JSON 구조
             if college not in data[university_name]:
                 data[university_name][college] = {}
             if dept_name not in data[university_name][college]:
