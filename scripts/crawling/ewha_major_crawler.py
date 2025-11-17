@@ -2,46 +2,49 @@
 # https://eureka.ewha.ac.kr/eureka/my/public.do?pgId=P532004170
 
 import json
-from langchain_community.document_loaders import PyPDFLoader
+import pdfplumber
+import pandas as pd
 
 university_name = "이화여자대학교"
 colleges = ["공과대학", "자연과학대학"]
 JSON_FILE = f"data/raw/ewha_syllabus.json"
 data = {university_name: {}}
 
-def file_parse(file_path, college):
-    loader = PyPDFLoader(file_path)
-    documents = loader.load()
+def extract_data_from_pdf(file_path):
+    with pdfplumber.open(file_path) as f:
+        pages = f.pages
+        tables = []
+        for page in pages:
+            table = page.extract_table()
+            tables.extend(table)
 
-    raw_text = " ".join([doc.page_content for doc in documents])
-    lines = raw_text.strip().split('\n')
+        df = pd.DataFrame(tables[7:], columns=[tables[6]])
+        print(df)
+        return df
+                                     
+def data_parse(file_path, college):
+    df = extract_data_from_pdf(file_path)
 
-    header = lines[0].split()
+    for _, row in df.iterrows():
+        dept_name = str(row['설정전공']).strip().replace('\n', '')
+        course_name = str(row['교과목명']).strip().replace('\n', '')
+        description = str(row['교과목기술(국문)']).strip().replace('\n', ' ')
 
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-        print(line)
-        
-        dept_name = line[1].strip()
-        course_name = line[3].strip()
-        description = line[5].strip()
-
-        # 5. JSON 형식
-        if college not in data[university_name]:
-            data[university_name][college] = {}
-        if dept_name not in data[university_name][college]:
-            data[university_name][college][dept_name] = []
-        data[university_name][college][dept_name].append({
-            "name": course_name,
-            "description": description.replace('\n', ' ').strip() 
-        })
+        if (dept_name not in "None" or course_name not in "None" or description not in "None"):
+            # JSON 형식
+            if college not in data[university_name]:
+                data[university_name][college] = {}
+            if dept_name not in data[university_name][college]:
+                data[university_name][college][dept_name] = []
+            data[university_name][college][dept_name].append({
+                "name": course_name,
+                "description": description.replace('\n', ' ').strip() 
+            })
 
 def run():
     for college in colleges:
         file_path = f'data/raw/2025_ewha_{college}_전공과목개요.pdf'
-        file_parse(file_path, college)
+        data_parse(file_path, college)
 
     # JSON 저장
     with open(JSON_FILE, "w", encoding="utf-8") as f:
