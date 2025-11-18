@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
@@ -55,45 +56,89 @@ def run():
             for hakgwa_option in hakgwa_select.options:
                 hakgwa_name = hakgwa_option.text.strip()
                 hakgwa_select.select_by_visible_text(hakgwa_name)
+                time.sleep(1)
 
                 # 조회 버튼 클릭
                 btn_find = driver.find_element(By.ID, "btn_Find")
                 btn_find.click()
+                time.sleep(1)
 
-                # 4. 과목명 및 과목 설명 크롤링
-                rows = driver.find_elements(By.CSS_SELECTOR, "table tbody tr")
-                for row in rows:
-                    try:
-                        # 학수 번호 클릭 팝업 띄움
-                        subject_num = row.find_element(By.ID, "haksuNo")
-                        subject_num.click()
-                        time.sleep(1)
+                previous_page = None
 
-                        # 팝업 내부 과목명 및 국문개요 크롤링
-                        wait.until(EC.visibility_of_element_located((By.ID, "gwamokNm")))
+                while True:
+                    wait.until(lambda driver: driver.find_element(By.CSS_SELECTOR, ".numberLink span.strong").text.strip() != "")
+                    paging = driver.find_element(By.CSS_SELECTOR, ".numberLink")
+                    current_page = int(paging.find_element(By.CSS_SELECTOR, "span.strong").text.strip())
+                    print("현재 페이지:", current_page)
 
-                        subject_name = driver.find_element(By.ID, "gwamokNm").text.strip()
-                        description = driver.find_element(By.ID, "gwamokGaeyo").text.strip()
-                        print(description)                  
-                        
-                        # 팝업 닫기
-                        close_btn = driver.find_element(By.ID, "btn_Close")
-                        close_btn.click()
-                        time.sleep(1)
-                    except:
+                    if previous_page == current_page:
+                        break
+
+                    rows = driver.find_elements(By.CSS_SELECTOR, "table tbody tr")
+                    for row in rows:
                         subject_name = ""
                         description = ""
 
-                    # JSON 구조
-                    if college not in data[university_name]:
-                        data[university_name][college] = {}
-                    if hakgwa_name not in data[university_name][college]:
-                        data[university_name][college][hakgwa_name] = []
-                    data[university_name][college][hakgwa_name].append({
-                        "name": subject_name,
-                        "description": description
-                    })
+                        # 과목명 크롤링
+                        try:
+                            subject_name = row.find_element(By.ID, "gwamokNm").text.strip()
+                        except Exception as e:
+                            print("name 에러:", e)
+                            subject_name = ""
 
+                        try:
+                            # 4. 학수번호 클릭 (팝업 오픈)
+                            subject_num = row.find_element(By.ID, "haksuNo")
+                            driver.execute_script("arguments[0].click();", subject_num)
+                            time.sleep(1)
+
+                            wait.until(EC.visibility_of_element_located((By.ID, "gwamokNm")))
+                            time.sleep(1)
+
+                            # 과목 설명 크롤링
+                            try:
+                                description = driver.find_element(By.ID, "gwamokGaeyo").text.strip()
+                            except Exception as e:
+                                print("description 에러:", e)
+                                description = ""
+
+                            print(f'제목: {subject_name}\n{description}' )
+
+                            
+
+                        except Exception as e:
+                            print("에러:", e)
+                            pass
+
+                        # JSON 구조
+                        if college not in data[university_name]:
+                            data[university_name][college] = {}
+                        if hakgwa_name not in data[university_name][college]:
+                            data[university_name][college][hakgwa_name] = []
+                        data[university_name][college][hakgwa_name].append({
+                            "name": subject_name,
+                            "description": description
+                        })
+
+                    # 팝업 닫기
+                    close_btn = driver.find_element(By.ID, "btn_Close")
+                    driver.execute_script("arguments[0].click();", close_btn)
+                    time.sleep(1)
+
+                    # 다음 페이지 클릭
+                    next_page = driver.find_elements(By.CSS_SELECTOR,f'.cc-paging a[onclick="ServiceController.goPage({current_page + 1})"]')
+                    if next_page:
+                        driver.execute_script("arguments[0].click();", next_page[0])
+                    else:
+                        next_arrow = driver.find_element(By.CSS_SELECTOR, '#pagingPanel img[alt="다음"]')
+                        driver.execute_script("arguments[0].click();", next_arrow)
+                            
+                    time.sleep(1)
+                    previous_page = current_page
+
+                with open(JSON_FILE, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                    print(f"중간 저장 완료: {JSON_FILE}")
 
         # 5. JSON 저장
         with open(JSON_FILE, "w", encoding="utf-8") as f:
