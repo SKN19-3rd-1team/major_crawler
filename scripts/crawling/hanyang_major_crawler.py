@@ -66,7 +66,7 @@ def run():
                 previous_page = None
 
                 while True:
-                    wait.until(lambda driver: driver.find_element(By.CSS_SELECTOR, ".numberLink span.strong").text.strip() != "")
+                    # wait.until(lambda driver: driver.find_element(By.CSS_SELECTOR, ".numberLink span.strong").text.strip() != "")
                     paging = driver.find_element(By.CSS_SELECTOR, ".numberLink")
                     current_page = int(paging.find_element(By.CSS_SELECTOR, "span.strong").text.strip())
                     print("현재 페이지:", current_page)
@@ -92,9 +92,6 @@ def run():
                             driver.execute_script("arguments[0].click();", subject_num)
                             time.sleep(1)
 
-                            wait.until(EC.visibility_of_element_located((By.ID, "gwamokNm")))
-                            time.sleep(1)
-
                             # 과목 설명 크롤링
                             try:
                                 description = driver.find_element(By.ID, "gwamokGaeyo").text.strip()
@@ -102,23 +99,22 @@ def run():
                                 print("description 에러:", e)
                                 description = ""
 
-                            print(f'제목: {subject_name}\n{description}' )
-
-                            
-
+                            print(f'제목: {subject_name}\n{description}')                           
                         except Exception as e:
                             print("에러:", e)
-                            pass
+                            # pass
 
-                        # JSON 구조
-                        if college not in data[university_name]:
-                            data[university_name][college] = {}
-                        if hakgwa_name not in data[university_name][college]:
-                            data[university_name][college][hakgwa_name] = []
-                        data[university_name][college][hakgwa_name].append({
-                            "name": subject_name,
-                            "description": description
-                        })
+                        if subject_name.strip() or description.strip():
+                            if college not in data[university_name]:
+                                data[university_name][college] = {}
+                            if hakgwa_name not in data[university_name][college]:
+                                data[university_name][college][hakgwa_name] = []
+                            data[university_name][college][hakgwa_name].append({
+                                "name": subject_name,
+                                "description": description
+                            })
+                        else:
+                            print(f"빈 항목 건너뜀")
 
                     # 팝업 닫기
                     close_btn = driver.find_element(By.ID, "btn_Close")
