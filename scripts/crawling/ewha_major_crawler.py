@@ -30,16 +30,17 @@ def data_parse(file_path, college):
         course_name = str(row['교과목명']).strip().replace('\n', '')
         description = str(row['교과목기술(국문)']).strip().replace('\n', ' ')
 
-        if (dept_name not in "None" or course_name not in "None" or description not in "None"):
-            # JSON 구조
-            if college not in data[university_name]:
-                data[university_name][college] = {}
-            if dept_name not in data[university_name][college]:
-                data[university_name][college][dept_name] = []
-            data[university_name][college][dept_name].append({
-                "name": course_name,
-                "description": description.replace('\n', ' ').strip() 
-            })
+        if (dept_name not in "None"  or course_name not in "None" or description not in "None"):
+            if dept_name != "설정전공":
+                # JSON 구조
+                if college not in data[university_name]:
+                    data[university_name][college] = {}
+                if dept_name not in data[university_name][college]:
+                    data[university_name][college][dept_name] = []
+                data[university_name][college][dept_name].append({
+                    "name": course_name,
+                    "description": description.replace('\n', ' ').strip() 
+                })
 
 def run():
     for college in colleges:
