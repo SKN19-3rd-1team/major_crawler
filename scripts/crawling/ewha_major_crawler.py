@@ -6,7 +6,7 @@ import pdfplumber
 import pandas as pd
 
 university_name = "이화여자대학교"
-colleges = ["공과대학", "자연과학대학"]
+colleges = ["공과대학", "자연과학대학", "인공지능대학"]
 JSON_FILE = f"data/raw/ewha_syllabus.json"
 data = {university_name: {}}
 
