@@ -23,7 +23,7 @@ def run():
     # 2. 검색 조건 설정
     for semester in semesters:
         data = {university_name: {}}
-        JSON_FILE = f"data/raw/seoul_syllabus_add_{semester}.json"
+        JSON_FILE = f"data/raw/seoul_syllabus_{semester}_v2.json"
 
         for college in colleges:
             # 검색 조건 설정 버튼 클릭

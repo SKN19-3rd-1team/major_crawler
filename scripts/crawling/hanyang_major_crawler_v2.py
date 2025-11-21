@@ -31,7 +31,7 @@ def run():
     # 3. 검색 조건 설정
     for semester in semesters:
         data = {university_name: {}}
-        JSON_FILE = f"data/raw/hanyang_syllabus_add_{semester}.json"
+        JSON_FILE = f"data/raw/hanyang_syllabus_{semester}_v2.json"
 
         for college in colleges:
             # 학기 선택
