@@ -1,13 +1,16 @@
 # vscode
 .vscode
+.claude
 
 # AGENTS
 AGENTS.md
+CLAUDE.md
 
 # Web Driver
 chromedriver.exe
 
 # data
+
 # data/
 
 # env
