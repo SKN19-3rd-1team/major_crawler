@@ -1,5 +1,6 @@
 # vscode
 .vscode
+.claude
 
 # AGENTS
 AGENTS.md
@@ -9,4 +10,4 @@ CLAUDE.md
 chromedriver.exe
 
 # data
-# data/
+data/
