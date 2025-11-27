@@ -10,4 +10,8 @@ CLAUDE.md
 chromedriver.exe
 
 # data
-data/
+
+# data/
+
+# env
+.env
