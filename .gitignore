@@ -9,3 +9,6 @@ chromedriver.exe
 
 # data
 # data/
+
+# env
+.env
