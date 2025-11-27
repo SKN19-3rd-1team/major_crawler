@@ -2,6 +2,9 @@
 
 각 대학(건국대, 홍익대) 의 이공계열 교육과정 데이터 수집
 
+
+
+
 ## 건국대
 
 - 도메인: <https://konkuk.ac.kr/bulletins25/{전공번호}/subview.do>
