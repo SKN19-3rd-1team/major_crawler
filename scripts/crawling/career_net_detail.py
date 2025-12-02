@@ -20,12 +20,22 @@ def fetch_major_detail():
         content_list = item["dataSearch"]["content"]
 
         for content in content_list:
-            lClass = content["lClass"]  # 공학계열 / 자연계열
+            lClass = content["lClass"]  # 계열 분류
 
-            if lClass == "공학계열":
+            if lClass == "인문계열":
+                subject = 100391
+            elif lClass == "사회계열":
+                subject = 100392
+            elif lClass == "교육계열":
+                subject = 100393
+            elif lClass == "공학계열":
                 subject = 100394
             elif lClass == "자연계열":
                 subject = 100395
+            elif lClass == "의약계열":
+                subject = 100396
+            elif lClass == "예체능계열":
+                subject = 100397
             else:
                 subject = None
 
